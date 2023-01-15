@@ -1,6 +1,5 @@
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
 import {
-  Button,
   ImageBackground,
   Keyboard,
   KeyboardAvoidingView,
@@ -12,6 +11,8 @@ import {
   View,
   Text,
 } from "react-native";
+import { useFonts } from "expo-font";
+import * as SplashScreen from "expo-splash-screen";
 import colors from "../helpers/colors";
 
 const initialState = {
@@ -19,22 +20,36 @@ const initialState = {
   email: "",
   password: "",
 };
+SplashScreen.preventAutoHideAsync();
 
 export default () => {
   const [formdata, setFormdata] = useState(initialState);
   const [isShowKeyboard, setIsShowKeyboard] = useState(false);
+  const [loaded] = useFonts({
+    RobotoRegular: require("../fonts/Roboto-Regular.ttf"),
+    RobotoMedium: require("../fonts/Roboto-Medium.ttf"),
+    RobotoBold: require("../fonts/Roboto-Bold.ttf"),
+  });
+
+  const onLayoutRootView = useCallback(async () => {
+    if (!loaded) {
+      await SplashScreen.hideAsync();
+    }
+  }, [loaded]);
+
+  if (!loaded) {
+    return null;
+  }
 
   const keyboardHide = () => {
-    console.log(isShowKeyboard);
     setIsShowKeyboard(false);
     Keyboard.dismiss();
-    // console.log(formdata);
     setFormdata(initialState);
   };
 
   return (
     <TouchableWithoutFeedback onPress={keyboardHide}>
-      <View style={styles.container}>
+      <View style={styles.container} onLayout={onLayoutRootView}>
         <ImageBackground
           style={styles.bgImage}
           source={require("../images/photoBG.jpg")}
@@ -45,10 +60,12 @@ export default () => {
             <View
               style={{
                 ...styles.formContainer,
-                paddingBottom: isShowKeyboard ? 20 : 90,
+                paddingBottom: isShowKeyboard ? 10 : 90,
               }}
             >
-              <Text style={styles.title}>Register</Text>
+              <View>
+                <Text style={styles.title}>Register</Text>
+              </View>
               <TextInput
                 style={styles.input}
                 placeholder="Enter your login"
@@ -119,7 +136,6 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
     paddingTop: 92,
     paddingHorizontal: 15,
-    paddingBottom: 92,
   },
   title: {
     color: colors.mainTextColor,
@@ -127,6 +143,7 @@ const styles = StyleSheet.create({
     fontWeight: "500",
     marginTop: 32,
     textAlign: "center",
+    fontFamily: "RobotoMedium",
   },
   input: {
     height: 50,
@@ -139,7 +156,6 @@ const styles = StyleSheet.create({
     marginTop: 43,
     alignItems: "center",
     justifyContent: "center",
-    // marginBottom: 113,
     backgroundColor: colors.buttonBg,
     borderRadius: 100,
   },
